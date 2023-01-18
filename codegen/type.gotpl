@@ -77,6 +77,15 @@
 						err := res.UnmarshalGQL(v)
 					{{- end }}
 					return res, graphql.ErrorOnPath(ctx, err)
+				{{- else if $type.IsTextMarshaler }}
+					{{- if and $type.IsNilable $type.Elem }}
+						var res = new({{ $type.Elem.GO | ref }})
+						err := graphql.UnmarshalText(res, v)
+					{{- else}}
+						var res {{ $type.GO | ref }}
+						err := graphql.UnmarshalText(&res, v)
+					{{- end }}
+					return res, graphql.ErrorOnPath(ctx, err)
 				{{- else }}
 					res, err := ec.unmarshalInput{{ $type.GQL.Name }}(ctx, v)
 					{{- if and $type.IsNilable (not $type.PointersInUmarshalInput) }}
@@ -169,6 +178,8 @@
 					{{- else }}
 						return v
 					{{- end }}
+				{{- else if $type.IsTextMarshaler }}
+					return graphql.TextMarshaler(ctx, v)
 				{{- else if $type.Marshaler }}
 					{{- $v := "v" }}
 					{{- if and $type.IsTargetNilable (not $type.IsNilable) }}

@@ -191,6 +191,7 @@ type TypeReference struct {
 	Marshaler               *types.Func // When using external marshalling functions this will point to the Marshal function
 	Unmarshaler             *types.Func // When using external marshalling functions this will point to the Unmarshal function
 	IsMarshaler             bool        // Does the type implement graphql.Marshaler and graphql.Unmarshaler
+	IsTextMarshaler         bool        //
 	IsContext               bool        // Is the Marshaler/Unmarshaller the context version; applies to either the method or interface variety.
 	PointersInUmarshalInput bool        // Inverse values and pointers in return.
 }
@@ -419,6 +420,9 @@ func (b *Binder) TypeReference(schemaType *ast.Type, bindTarget types.Type) (ret
 		} else if hasMethod(obj.Type(), "MarshalGQL") && hasMethod(obj.Type(), "UnmarshalGQL") {
 			ref.GO = obj.Type()
 			ref.IsMarshaler = true
+		} else if hasMethod(obj.Type(), "MarshalText") && hasMethod(obj.Type(), "UnmarshalText") {
+			ref.GO = obj.Type()
+			ref.IsTextMarshaler = true
 		} else if underlying := basicUnderlying(obj.Type()); def.IsLeafType() && underlying != nil && underlying.Kind() == types.String {
 			// TODO delete before v1. Backwards compatibility case for named types wrapping strings (see #595)
 
